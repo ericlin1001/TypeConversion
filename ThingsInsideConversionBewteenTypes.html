@@ -1,0 +1,406 @@
+<!DOCTYPE HTML>
+<html>
+ <head>
+  <meta charset="utf-8"/>
+  <title>
+   Made with Remarkable!
+  </title>
+  <link href="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.1/styles/github.min.css" rel="stylesheet"/>
+  <style type="text/css">
+   body,table tr{background-color:#fff}table tr td,table tr th{border:1px solid #ccc;text-align:left;padding:6px 13px;margin:0}pre code,table,table tr{padding:0}hr,pre code{background:0 0}body{font:16px Helvetica,Arial,sans-serif;line-height:1.4;color:#333;word-wrap:break-word;padding:10px 15px}strong,table tr th{font-weight:700}h1{font-size:2em;margin:.67em 0;text-align:center}h2{font-size:1.75em}h3{font-size:1.5em}h4{font-size:1.25em}h1,h2,h3,h4,h5,h6{font-weight:700;position:relative;margin-top:15px;margin-bottom:15px;line-height:1.1}h1,h2{border-bottom:1px solid #eee}hr{height:0;margin:15px 0;overflow:hidden;border:0;border-bottom:1px solid #ddd}a{color:#4183C4}a.absent{color:#c00}ol,ul{padding-left:15px;margin-left:5px}ol{list-style-type:lower-roman}table tr{border-top:1px solid #ccc;margin:0}table tr:nth-child(2n){background-color:#aaa}table tr td :first-child,table tr th :first-child{margin-top:0}table tr td:last-child,table tr th :last-child{margin-bottom:0}img{max-width:100%}blockquote{padding:0 15px;border-left:4px solid #ccc}code,tt{margin:0 2px;padding:0 5px;white-space:nowrap;border:1px solid #eaeaea;background-color:#f8f8f8;border-radius:3px}pre code{margin:0;white-space:pre;border:none}.highlight pre,pre{background-color:#f8f8f8;border:1px solid #ccc;font-size:13px;line-height:19px;overflow:auto;padding:6px 10px;border-radius:3px}
+  </style>
+ </head>
+ <body>
+<h1 id="things-inside-conversion-of-different-types">Things inside conversion of different types</h1>
+<p>What happens when converting variables between different types? (C++)</p>
+<h1 id="program-to-find-the-truth">Program to find the truth</h1>
+<pre><code>#include&lt;iostream&gt;
+using namespace std;
+
+//
+typedef unsigned char byte;
+typedef signed char sbyte;
+typedef unsigned int dword;
+typedef signed int sdword;
+//
+
+enum MyType{TYPE_UNKNOW,TYPE_BYTE,TYPE_SBYTE,TYPE_DWORD,TYPE_SDWORD};
+template&lt;class T&gt;
+MyType getType(const T t){return TYPE_UNKNOW;}
+MyType getType(const dword t){return TYPE_DWORD;}
+MyType getType(const sdword t){return TYPE_SDWORD;}
+MyType getType(const byte t){return TYPE_BYTE;}
+MyType getType(const sbyte t){return TYPE_SBYTE;}
+
+template &lt;class T&gt;
+const char *getTypeName(const T t){
+    switch(getType(t)){
+        default:
+        case TYPE_UNKNOW:
+            return &quot;Unknow&quot;;
+        case TYPE_BYTE:
+            return &quot;Unsigned Byte&quot;;
+        case TYPE_SBYTE:
+            return &quot;Signed Byte\t&quot;;
+        case TYPE_DWORD:
+            return &quot;Unsigned Double Word&quot;;
+        case TYPE_SDWORD:
+            return &quot;Signed Double Word&quot;;
+    };
+}
+template&lt;class T&gt;
+bool getByte(const T b,int i){
+    unsigned long k=1;
+    k&lt;&lt;=i;
+    return (b&amp;k)==k;
+    //return ((b&gt;&gt;i)&amp;0x1)==0x1;
+}
+//
+template &lt;class T&gt;
+inline void _printB(const T t,int numBits){
+    //like a memory [high ... low]
+    //print from high address bits, to low address bits.
+    for(int i=numBits-1;i&gt;=0;i--){
+        cout&lt;&lt;getByte(t,i);
+    }
+}
+
+template &lt;class T&gt;
+inline void printB(const T t,int numBits=-1){
+    if(numBits==-1){
+        if(getType(t)==TYPE_BYTE||getType(t)==TYPE_SBYTE){
+            numBits=8;
+        }else{
+            numBits=32;
+        }
+    }
+    _printB(t,numBits);
+}
+
+template&lt;class T&gt;
+void printT(const T t){
+    if(getType(t)==TYPE_BYTE||getType(t)==TYPE_SBYTE){
+        cout&lt;&lt;(int)t;
+    }else{
+        cout&lt;&lt;t;
+    }
+}
+//
+template&lt;class T&gt;
+void testType(T t){
+#define print(m) cout&lt;&lt;#m&quot;\t&quot;;printT(m);cout&lt;&lt;&quot;\t&quot;;printB(m);cout&lt;&lt;endl;
+    byte b=t;
+    sbyte sb=t;
+    dword dw=t;
+    sdword sdw=t;
+#define ToWhat(v) cout&lt;&lt;&quot;To &quot;&lt;&lt;getTypeName(v)&lt;&lt;&quot;\t&quot;;print(v);
+    ToWhat(b);
+    ToWhat(sb);
+    ToWhat(dw);
+    ToWhat(sdw);
+    cout&lt;&lt;endl;
+}
+void testAllType(){
+#define ShowTest(v,cmd) cmd;\
+    cout&lt;&lt;&quot;After run command:&quot;#cmd&quot;&quot;&lt;&lt;endl;\
+    cout&lt;&lt;&quot;From &quot;&lt;&lt;getTypeName(v)&lt;&lt;&quot;\t&quot;;print(v);\
+    cout&lt;&lt;&quot;---&quot;&lt;&lt;endl;\
+    testType(v);cout&lt;&lt;endl;
+
+#define ShowTests(v)  \
+    ShowTest(v,v=128);\
+    ShowTest(v,v=127);\
+    ShowTest(v,v++);\
+    ShowTest(v,v++);\
+    ShowTest(v,v=-1);\
+    ShowTest(v,v--);\
+    ShowTest(v,v=0xffffff00+64);\
+
+    byte b;
+    sbyte sb;
+    dword dw;
+    sdword sdw;
+    //
+    ShowTests(b);
+    ShowTests(sb);
+    ShowTests(dw);
+    ShowTests(sdw);
+    //
+}
+int main(){
+    testAllType();
+    return 0;
+}</code></pre>
+<h1 id="the-result-of-program.">The result of program.</h1>
+<pre><code>After run command:b=128
+From Unsigned Byte  b   128 10000000
+---
+To Unsigned Byte    b   128 10000000
+To Signed Byte      sb  -128    10000000
+To Unsigned Double Word dw  128 00000000000000000000000010000000
+To Signed Double Word   sdw 128 00000000000000000000000010000000
+
+
+After run command:b=127
+From Unsigned Byte  b   127 01111111
+---
+To Unsigned Byte    b   127 01111111
+To Signed Byte      sb  127 01111111
+To Unsigned Double Word dw  127 00000000000000000000000001111111
+To Signed Double Word   sdw 127 00000000000000000000000001111111
+
+
+After run command:b++
+From Unsigned Byte  b   128 10000000
+---
+To Unsigned Byte    b   128 10000000
+To Signed Byte      sb  -128    10000000
+To Unsigned Double Word dw  128 00000000000000000000000010000000
+To Signed Double Word   sdw 128 00000000000000000000000010000000
+
+
+After run command:b++
+From Unsigned Byte  b   129 10000001
+---
+To Unsigned Byte    b   129 10000001
+To Signed Byte      sb  -127    10000001
+To Unsigned Double Word dw  129 00000000000000000000000010000001
+To Signed Double Word   sdw 129 00000000000000000000000010000001
+
+
+After run command:b=-1
+From Unsigned Byte  b   255 11111111
+---
+To Unsigned Byte    b   255 11111111
+To Signed Byte      sb  -1  11111111
+To Unsigned Double Word dw  255 00000000000000000000000011111111
+To Signed Double Word   sdw 255 00000000000000000000000011111111
+
+
+After run command:b--
+From Unsigned Byte  b   254 11111110
+---
+To Unsigned Byte    b   254 11111110
+To Signed Byte      sb  -2  11111110
+To Unsigned Double Word dw  254 00000000000000000000000011111110
+To Signed Double Word   sdw 254 00000000000000000000000011111110
+
+
+After run command:b=0xffffff00+64
+From Unsigned Byte  b   64  01000000
+---
+To Unsigned Byte    b   64  01000000
+To Signed Byte      sb  64  01000000
+To Unsigned Double Word dw  64  00000000000000000000000001000000
+To Signed Double Word   sdw 64  00000000000000000000000001000000
+
+
+After run command:sb=128
+From Signed Byte        sb  -128    10000000
+---
+To Unsigned Byte    b   128 10000000
+To Signed Byte      sb  -128    10000000
+To Unsigned Double Word dw  4294967168  11111111111111111111111110000000
+To Signed Double Word   sdw -128    11111111111111111111111110000000
+
+
+After run command:sb=127
+From Signed Byte        sb  127 01111111
+---
+To Unsigned Byte    b   127 01111111
+To Signed Byte      sb  127 01111111
+To Unsigned Double Word dw  127 00000000000000000000000001111111
+To Signed Double Word   sdw 127 00000000000000000000000001111111
+
+
+After run command:sb++
+From Signed Byte        sb  -128    10000000
+---
+To Unsigned Byte    b   128 10000000
+To Signed Byte      sb  -128    10000000
+To Unsigned Double Word dw  4294967168  11111111111111111111111110000000
+To Signed Double Word   sdw -128    11111111111111111111111110000000
+
+
+After run command:sb++
+From Signed Byte        sb  -127    10000001
+---
+To Unsigned Byte    b   129 10000001
+To Signed Byte      sb  -127    10000001
+To Unsigned Double Word dw  4294967169  11111111111111111111111110000001
+To Signed Double Word   sdw -127    11111111111111111111111110000001
+
+
+After run command:sb=-1
+From Signed Byte        sb  -1  11111111
+---
+To Unsigned Byte    b   255 11111111
+To Signed Byte      sb  -1  11111111
+To Unsigned Double Word dw  4294967295  11111111111111111111111111111111
+To Signed Double Word   sdw -1  11111111111111111111111111111111
+
+
+After run command:sb--
+From Signed Byte        sb  -2  11111110
+---
+To Unsigned Byte    b   254 11111110
+To Signed Byte      sb  -2  11111110
+To Unsigned Double Word dw  4294967294  11111111111111111111111111111110
+To Signed Double Word   sdw -2  11111111111111111111111111111110
+
+
+After run command:sb=0xffffff00+64
+From Signed Byte        sb  64  01000000
+---
+To Unsigned Byte    b   64  01000000
+To Signed Byte      sb  64  01000000
+To Unsigned Double Word dw  64  00000000000000000000000001000000
+To Signed Double Word   sdw 64  00000000000000000000000001000000
+
+
+After run command:dw=128
+From Unsigned Double Word   dw  128 00000000000000000000000010000000
+---
+To Unsigned Byte    b   128 10000000
+To Signed Byte      sb  -128    10000000
+To Unsigned Double Word dw  128 00000000000000000000000010000000
+To Signed Double Word   sdw 128 00000000000000000000000010000000
+
+
+After run command:dw=127
+From Unsigned Double Word   dw  127 00000000000000000000000001111111
+---
+To Unsigned Byte    b   127 01111111
+To Signed Byte      sb  127 01111111
+To Unsigned Double Word dw  127 00000000000000000000000001111111
+To Signed Double Word   sdw 127 00000000000000000000000001111111
+
+
+After run command:dw++
+From Unsigned Double Word   dw  128 00000000000000000000000010000000
+---
+To Unsigned Byte    b   128 10000000
+To Signed Byte      sb  -128    10000000
+To Unsigned Double Word dw  128 00000000000000000000000010000000
+To Signed Double Word   sdw 128 00000000000000000000000010000000
+
+
+After run command:dw++
+From Unsigned Double Word   dw  129 00000000000000000000000010000001
+---
+To Unsigned Byte    b   129 10000001
+To Signed Byte      sb  -127    10000001
+To Unsigned Double Word dw  129 00000000000000000000000010000001
+To Signed Double Word   sdw 129 00000000000000000000000010000001
+
+
+After run command:dw=-1
+From Unsigned Double Word   dw  4294967295  11111111111111111111111111111111
+---
+To Unsigned Byte    b   255 11111111
+To Signed Byte      sb  -1  11111111
+To Unsigned Double Word dw  4294967295  11111111111111111111111111111111
+To Signed Double Word   sdw -1  11111111111111111111111111111111
+
+
+After run command:dw--
+From Unsigned Double Word   dw  4294967294  11111111111111111111111111111110
+---
+To Unsigned Byte    b   254 11111110
+To Signed Byte      sb  -2  11111110
+To Unsigned Double Word dw  4294967294  11111111111111111111111111111110
+To Signed Double Word   sdw -2  11111111111111111111111111111110
+
+
+After run command:dw=0xffffff00+64
+From Unsigned Double Word   dw  4294967104  11111111111111111111111101000000
+---
+To Unsigned Byte    b   64  01000000
+To Signed Byte      sb  64  01000000
+To Unsigned Double Word dw  4294967104  11111111111111111111111101000000
+To Signed Double Word   sdw -192    11111111111111111111111101000000
+
+
+After run command:sdw=128
+From Signed Double Word sdw 128 00000000000000000000000010000000
+---
+To Unsigned Byte    b   128 10000000
+To Signed Byte      sb  -128    10000000
+To Unsigned Double Word dw  128 00000000000000000000000010000000
+To Signed Double Word   sdw 128 00000000000000000000000010000000
+
+
+After run command:sdw=127
+From Signed Double Word sdw 127 00000000000000000000000001111111
+---
+To Unsigned Byte    b   127 01111111
+To Signed Byte      sb  127 01111111
+To Unsigned Double Word dw  127 00000000000000000000000001111111
+To Signed Double Word   sdw 127 00000000000000000000000001111111
+
+
+After run command:sdw++
+From Signed Double Word sdw 128 00000000000000000000000010000000
+---
+To Unsigned Byte    b   128 10000000
+To Signed Byte      sb  -128    10000000
+To Unsigned Double Word dw  128 00000000000000000000000010000000
+To Signed Double Word   sdw 128 00000000000000000000000010000000
+
+
+After run command:sdw++
+From Signed Double Word sdw 129 00000000000000000000000010000001
+---
+To Unsigned Byte    b   129 10000001
+To Signed Byte      sb  -127    10000001
+To Unsigned Double Word dw  129 00000000000000000000000010000001
+To Signed Double Word   sdw 129 00000000000000000000000010000001
+
+
+After run command:sdw=-1
+From Signed Double Word sdw -1  11111111111111111111111111111111
+---
+To Unsigned Byte    b   255 11111111
+To Signed Byte      sb  -1  11111111
+To Unsigned Double Word dw  4294967295  11111111111111111111111111111111
+To Signed Double Word   sdw -1  11111111111111111111111111111111
+
+
+After run command:sdw--
+From Signed Double Word sdw -2  11111111111111111111111111111110
+---
+To Unsigned Byte    b   254 11111110
+To Signed Byte      sb  -2  11111110
+To Unsigned Double Word dw  4294967294  11111111111111111111111111111110
+To Signed Double Word   sdw -2  11111111111111111111111111111110
+
+
+After run command:sdw=0xffffff00+64
+From Signed Double Word sdw -192    11111111111111111111111101000000
+---
+To Unsigned Byte    b   64  01000000
+To Signed Byte      sb  64  01000000
+To Unsigned Double Word dw  4294967104  11111111111111111111111101000000
+To Signed Double Word   sdw -192    11111111111111111111111101000000
+
+</code></pre>
+<h1 id="observation">Observation</h1>
+<ol style="list-style-type: decimal">
+<li><p>When a signed varialbe Var is converted to a bigger-size variable NewVar, the new expanding high bits are filled with the same bit as the highest bit of Var, i.e. if Var is positive, NewVar is filled with 0, while if Var is negative, NewVar is filled with 1.</p></li>
+<li><p>When a unsigned variable is converted to a bigger-size variable, the expanding bits are filled with 0.</p></li>
+<li><p>When a variable is converted to a less-size variable, cut the high bits directly.</p></li>
+</ol>
+<h1 id="conclusion">Conclusion</h1>
+<p>In a nutshell, to expand a Var to a bigger size, fill with 0 if Var is a unsigned or Var is postive, otherwise 1.</p>
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.1/highlight.min.js">
+  </script>
+  <script>
+   hljs.initHighlightingOnLoad();
+  </script>
+  <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript">
+  </script>
+  <script type="text/javascript">
+   MathJax.Hub.Config({"showProcessingMessages" : false,"messageStyle" : "none","tex2jax": { inlineMath: [ [ "$", "$" ] ] }});
+  </script>
+ </body>
+</html>
