@@ -1,6 +1,9 @@
 #Things inside conversion of different types
 What happens when converting variables between different types? (C++)
 
+#TODO
+	Write a program to proof my conclusion, i.e. a program to simulate my conclusion and compare the result with the direct type conversion.
+
 
 #Program to find the truth
 
